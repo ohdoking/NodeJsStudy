@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+   <title><%= title %></title>
+   <meta charset = 'utf-8'>
+   <link rel='stylesheet' href='/stylesheets/style.css' />
+   <link rel='stylesheet' href='/bootstrap/css/bootstrap.min.css' />
+   <script src="/jquery/jquery.min.js"></script>
+   <script src="/bootstrap/js/bootstrap.min.js"></script>
+
+</head>
+<body class = "container">
+   <h1><%= title %></h1>
+
+   <form action="/insert/<%= param %>" method="post">
+      <table class="table table-striped">
+         <!-- HTML 주석 : 제목, 내용, 이름, 비밀번호-->
+         <!-- name 항목이 키가 된다!!-->
+         <tr>
+            <th class="col-md-1">제목</th>
+            <td class="col-md-11">
+               <input 
+                  type="text" 
+                  name="title" 
+                  id="title"
+                  value ="<%= datas.title %>"
+                  maxlength="12">
+                  
+               </input>
+            </td>
+         </tr>
+         <tr>
+            <th>내용</th>
+            <td>
+               <textarea 
+                  name="content" 
+                  id="content" 
+                  rows="10">
+                  <%= datas.content %>
+               </textarea>
+            </td>
+         </tr>
+         <tr>
+            <th>이름</th>
+            <td>
+               <input 
+                  type="text" 
+                  name="name" 
+                  id="name" 
+                  value ="<%= datas.name %>"
+                  maxlength="12">
+            </td>
+         </tr>
+         <tr>
+            <th>비밀번호</th>
+            <td>
+               <input 
+                  type="password" 
+                  name="pw" 
+                  id="pw" 
+                  value ="<%= datas.pw %>"
+                  maxlength="12">
+            </td>
+         </tr>
+        
+      </table>
+      <div class="row">
+         <div class="col-md-10"></div>
+         <div class="col-md-1">
+            <input 
+               type="submit" 
+               class="btn btn-success button-width" 
+               value="<%= inputdata %>"/>
+         </div>
+         <div class="col-md-1">
+            <input 
+               onclick="location.href='/'"
+               type="reset" 
+               class="btn btn-danger button-width" 
+               value="취소"/>
+         </div>
+      </div>
+   </form>
+</body>
+</html>

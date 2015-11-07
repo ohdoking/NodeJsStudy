@@ -1,0 +1,16 @@
+{
+  "name": "ohdoking",
+  "version": "0.0.0",
+  "description": "just test",
+  "main": "app.js",
+  "scripts": {
+    "test": "ohdoking"
+  },
+  "author": "oh",
+  "license": "MIT",
+  "dependencies": {
+  	"express" : "lastest",
+  	"grunt" : "lastest"
+  }
+
+}
