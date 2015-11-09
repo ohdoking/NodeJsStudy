@@ -45,7 +45,10 @@ module.exports = function(){
 	app.set('views','./app/views');
 	app.set('view engine','ejs');
 
+
+	//route
 	require('../app/routes/index.server.routes.js')(app);
+	require('../app/routes/users.server.routes.js')(app);
 	
 	//정적 파일 서비스
 	//express.static 미들웨어는 라우팅 파일 호출 아래에 위치한다
