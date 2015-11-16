@@ -1,4 +1,99 @@
 var User = require('mongoose').model('User');
+var passport = require('passport');
+
+// 몽구스 error 객체에서 통합된 오류 메시지를 반환하는 비공개 메소드
+var getErrorMessage = function(err) {
+    // Define the error message variable
+    var message = '';
+
+    // If an internal MongoDB error occurs get the error message
+    if (err.code) {
+        switch (err.code) {
+            // If a unique index error occurs set the message error
+            case 11000:
+                message = 'Duplicate Key';
+                break;
+            case 11001:
+                message = 'Username already exists';
+                break;
+            // If a general error occurs set the message error
+            default:
+                message = 'Something went wrong';
+        }
+    } 
+    else {
+        // Grab the first error message from a list of possible errors
+        for (var errName in err.errors) {
+            if (err.errors[errName].message){ 
+            	message = err.errors[errName].message;
+            }
+        }
+    }
+
+    // Return the message error
+    return message;
+};
+
+exports.renderSignin = function(req, res, next) {
+  if (!req.user) {
+    res.render('signin', {
+      title: 'Sign-in Form',
+      messages: req.flash('error') || req.flash('info')
+    });
+  } 
+  else {
+    return res.redirect('/');
+  }
+};
+
+exports.renderSignup = function(req, res, next) {
+  if (!req.user) {
+    res.render('signup', {
+      title: 'Sign-up Form',
+      messages: req.flash('error')
+    });
+
+  } 
+  else {
+    return res.redirect('/');
+  }
+};
+
+exports.signup = function(req, res, next) {
+  if (!req.user) {
+    var user = new User(req.body);
+    var message = null;
+
+    user.provider = 'local';
+
+    user.save(function(err) {
+      if (err) {
+        var message = getErrorMessage(err);
+
+        req.flash('error', message);
+        return res.redirect('/signup');
+        
+      }
+      // passport.authenticate() 메소드를 사용할때 자동으로 호출됨
+      // 새로운 사용자를 등록 할 때는 req.login()을 수동으로 호출하는 방식을 주로 사용
+      req.login(user, function(err) {
+        if (err) return next(err);
+        return res.redirect('/');
+      });
+    });
+  } 
+  else {
+    return res.redirect('/');
+  }
+};
+
+exports.signout = function(req, res) {
+	//인증된 세션을 무효화 하기위해 패스포트 모듈이 제공하는 메소드
+  req.logout();
+  res.redirect('/');
+};
+
+
 
 exports.create = function(req,res,nex){
 	var user = new User(req.body);
@@ -95,6 +190,4 @@ exports.delete = function(req, res, next){
 		}
 	});
 }
-
-
 

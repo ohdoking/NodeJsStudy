@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var crypto = require('crypto');
 var Schema = mongoose.Schema;
 
 //사용자 스키마와 모델 생성
@@ -49,14 +50,32 @@ var UserSchema = new Schema({
 	lastName:String,
 	email:{
 		type : String,
-		index : true
+		match : [/.+\@.+\..+/,"Please fill a valid email address"]
 	},
 	username:{
 		type:String,
 		trim:true,
+		required : 'Username is required',
 		unique:true
 	},
-	password:String,
+	password:{
+		type: String,
+		validate:[
+			function(password){
+				return password.length >= 6
+			},
+			'Password should be longer'
+		]
+	},
+	salt:{
+		type : String
+	},
+	provider:{
+		type : String,
+		requried : 'provider is requried'
+	},
+	providerId: String,
+	providerData : {},
 	created:{
 		type:Date,
 		default: Date.now
@@ -68,7 +87,7 @@ var UserSchema = new Schema({
 				return url;
 			}
 			else{
-				if(url.indexOf('http://') !== 0 %% url.indexOf('https://') !== 0){
+				if(url.indexOf('http://') !== 0 && url.indexOf('https://') !== 0){
 					url = 'http://' + url;
 				}
 				return url;
@@ -119,7 +138,7 @@ UserSchema.virtual('fullName').get(function(){
 
 
 //모델 생성
-mongoose.model('User',UserSchema);
+//mongoose.model('User',UserSchema);
 
 
 //맞춤식 모델 메소드 정의
@@ -143,9 +162,9 @@ UserSchema.statics.findOneByUsername = function(username, callback){
 	 애플리케이션 코드를 적절히 재사용하게 도와줌
 */
 
-UserSchema.methods.authentication = function(password){
+/*UserSchema.methods.authentication = function(password){
 	return this.password === password;
-}
+}*/
 
 //호출 
 // user.authentication('password');
@@ -219,3 +238,79 @@ UserSchema.methods.authentication = function(password){
 
 */
 
+
+UserSchema.virtual('fullName').get(function(){
+	return this.firstName + ' ' + this.lastName;
+}).set(function(){
+	var splitName = fullName.split(' ');
+	this.firstName = splitName[0] || '';
+	this.lastName = splitName[1] || '';
+
+});
+
+
+/*
+
+	패스포트를 위한 설정
+
+	salt 속성
+		각각 암호를 해시하기 위해 사용
+	provider 속성
+		사용자를 등록하기위해 사용되는 전략을 지시
+	providerId 속성
+		인증 전략을 위한 사용자 식별자를 지시
+	providerData 속성
+		OAuth 공급자로부터 인출한 사용자 객체를 저장하기 위함
+
+*/
+
+
+//사용자의 비밀번호를 해시 하기 위해 pre-save 미들웨어를 생성
+
+UserSchema.pre('save', function(next){
+	if(this.password){
+		//자동으로 생성된 가상 난수 해시 솔트를 만듬.
+		this.salt = new Buffer(crypto.randomBytes(16).toString('base64'),'base64');
+		// 현재 사용자의 비밀번호를 hashPasword() 인스턴스를 사용해 해시로 처리된 비밀번호로 치환
+		this.password = this.hashPassword(this.password);
+	}
+
+	next();
+});
+
+UserSchema.methods.hashPassword = function(password){
+	return crypto.pbkdf2Sync(password, this.salt, 10000 ,64).toString('base64');
+};
+
+UserSchema.methods.authentication = function(password){
+	return this.password === this.hashPassword(password);
+}
+
+//새로운 사용자가 선택 가능한 유일한 이름ㅇ르 찾기위해 사용
+//OAuth 인증을 다룰때 사용
+UserSchema.statics.findUniqueUsername = function(username, suffix, callback){
+	var _this = this;
+	var possibleUsername = username + (suffix || '');
+
+	_this.findOne({
+		user : possibleUsername
+	}, function(err,user){
+		if(!err){
+			if(!user){
+				callback(possibleUsername);
+			}
+			else{
+				return _this.findUniqueUsername(username, (suffix || 0) + 1, callback);
+			}
+		}
+		else{
+			callback(null);
+		}
+	});
+};
+
+
+UserSchema.set('toJson', {getters: true, virtuals : true});
+
+//모델 생성
+mongoose.model('User',UserSchema);

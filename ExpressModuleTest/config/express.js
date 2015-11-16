@@ -6,6 +6,9 @@ var compress = require('compression');
 var bodyParser = require('body-parser');
 var methodOverride = require('method-override');
 var session = require('express-session');
+var passport = require('passport');
+// flash 라는 세션 객체 영역에 임시 메시지를 저장하게 만드는 노드 모듈
+var flash = require('connect-flash')
 
 
 module.exports = function(){
@@ -45,7 +48,12 @@ module.exports = function(){
 	app.set('views','./app/views');
 	app.set('view engine','ejs');
 
-
+	app.use(flash());
+	//passport 미들웨어 등록
+	//패스포트 모듈을 부트스트래핑함
+	app.use(passport.initialize());
+	//사용자 세션을 추적하기 위해 익스프레스 세션을 사용
+	app.use(passport.session());
 	//route
 	require('../app/routes/index.server.routes.js')(app);
 	require('../app/routes/users.server.routes.js')(app);
