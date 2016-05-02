@@ -282,7 +282,7 @@ UserSchema.methods.hashPassword = function(password){
 	return crypto.pbkdf2Sync(password, this.salt, 10000 ,64).toString('base64');
 };
 
-UserSchema.methods.authentication = function(password){
+UserSchema.methods.authenticate = function(password){
 	return this.password === this.hashPassword(password);
 }
 
