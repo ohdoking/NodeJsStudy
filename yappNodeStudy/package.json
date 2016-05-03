@@ -1,0 +1,12 @@
+{
+  "name": "NodeSample",
+  "author": "Ohdoking",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "formidable": "^1.0.17"
+  }
+}
